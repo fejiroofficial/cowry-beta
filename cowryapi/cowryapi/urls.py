@@ -21,4 +21,5 @@ urlpatterns = [
     path('', BaseView.as_view(), name='base_url'),
     path('admin/', admin.site.urls),
     re_path('api/v1/', include('cowryapi.apps.authentication.urls')),
+    re_path('api/v1/', include('cowryapi.apps.bank.urls')),
 ]
