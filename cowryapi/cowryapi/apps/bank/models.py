@@ -72,7 +72,6 @@ class Bank(models.Model):
         return self.name
 
 
-
 class BankMembers(models.Model):
     bank_member = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING, related_name='bank_member')
     bank_group = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='bank_group')
@@ -87,3 +86,10 @@ class BankMembers(models.Model):
 
     class Meta:
         unique_together = [['bank_member', 'bank_group']]
+
+
+class Payment(models.Model):
+    payment_round = models.IntegerField()
+    amount_paid = models.FloatField()
+    payment_date = models.DateTimeField(auto_now=True)
+    bank_customer = models.ForeignKey(BankMembers, on_delete=models.CASCADE)

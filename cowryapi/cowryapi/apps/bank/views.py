@@ -4,7 +4,8 @@ from rest_framework import viewsets, permissions, views, generics
 from rest_framework.response import Response
 from rest_framework.views import status
 from .models import Bank, BankMembers
-from .serializers import BankSerializer, BankCustomerSerializer
+from .serializers import (BankSerializer, BankCustomerSerializer, 
+                          PaymentSerializer)
 from .permissions import IsOwnerOrReadOnly
 
 
@@ -41,9 +42,11 @@ class BankCustomerJoinView(generics.CreateAPIView):
             status=status.HTTP_200_OK
         )
 
-class ApproveCustomerView(generics.RetrieveUpdateAPIView):
+
+class ApproveRetrieveCustomerView(generics.RetrieveUpdateAPIView):
     """
-    Bank owner can approve a customer  /banks/<bank_id>/join/<join_id>
+    Bank owner can approve a customer  /banks/<bank_id>/customers/<customer_id>/
+    Get a specific bank customer
     """
     permission_classes = (permissions.IsAuthenticated,)
     queryset = BankMembers.objects.all()
@@ -70,3 +73,32 @@ class ApproveCustomerView(generics.RetrieveUpdateAPIView):
                 },
                 status=status.HTTP_200_OK
             )
+
+
+class PaymentView(generics.CreateAPIView):
+    """
+    Bank owner can record payments  /banks/<bank_id>/customers/<customer_id>/payment/
+    """
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrReadOnly)
+    serializer_class = PaymentSerializer
+
+    def post(self, request, *args, **kwargs):
+        logged_in_user = request.user
+        bank_id = kwargs['bank_id']
+        customer_id = kwargs['pk']
+        get_object_or_404(Bank, id=bank_id, created_by=logged_in_user)
+        customer = get_object_or_404(BankMembers, pk=customer_id, bank_group=bank_id)
+
+        serializer = PaymentSerializer(data={
+            'payment_round': request.data.get('payment_round', ''),
+            'amount_paid': request.data.get('amount_paid', ''),
+            'bank_customer': customer.id
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            data={
+                'message': 'Payment recorded successfully'
+            },
+            status = status.HTTP_200_OK
+        )
