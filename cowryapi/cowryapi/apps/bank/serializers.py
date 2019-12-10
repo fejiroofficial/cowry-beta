@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
-from .models import Bank
+from .models import Bank, BankMembers
 
 
 class BankSerializer(serializers.ModelSerializer):
@@ -13,3 +13,13 @@ class BankSerializer(serializers.ModelSerializer):
         validated_data['created_by'] = self.context['request'].user
         return Bank.objects.create_bank(**validated_data)
 
+
+class BankCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BankMembers
+        fields = '__all__'
+    
+    def create(self, validated_data):
+        # validated_data['bank_member'] = self.context['request'].user
+        print('vala---->', validated_data)
+        return BankMembers.objects.join_bank(**validated_data)
